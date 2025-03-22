@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Environments
+venv/
+env/
+.venv/
+ENV/
+
+# Flask instance folder (주로 앱 설정, 데이터베이스 파일 등이 위치)
+instance/
+
+# 환경 파일
+.env
+*.env
+
+# Editor / IDE 관련
+.vscode/
+.idea/
+*.swp
+*~
+
+# Log files
+*.log
+
+keystore/
+
+# Mac OS / Windows
+.DS_Store
+Thumbs.db
