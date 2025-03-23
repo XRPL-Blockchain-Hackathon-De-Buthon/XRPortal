@@ -17,11 +17,11 @@ import AdvertisementDetailPage from './pages/avertisement/AdvertisementDetailPag
 import AdvertiseRegisterPage from './pages/advertiseregister/AdvertiseRegisterPage';
 import SellArticlePage from './pages/sell-articles/sell-article';
 import MyAdvertisementPage from './pages/mypage/advertisement/advertisement';
-import { useEffect } from 'react';
+import { use, useEffect } from 'react';
 import useUserStore from './store/auth';
 import { $api } from './utils/axios';
-
-
+import { connectClient, createWallet } from './utils/wallet';
+import useWalletStore from './store/wallet';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('userId');
@@ -34,6 +34,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const { setUser } = useUserStore();
   const userId = localStorage.getItem("userId");
+  const { setWallet, setClient } = useWalletStore()
 
   useEffect(() => {
     if (userId) {
@@ -42,9 +43,32 @@ function App() {
           setUser(res.data);
       }).catch(err => {
         console.log(err);
+        setUser(null)
       });
     }
   }, [userId, setUser]);
+
+  useEffect(() => {
+    (async () => {
+      if (!localStorage.getItem('wallet')) {
+        const client = await connectClient();
+        const wallet = await createWallet(client);
+        localStorage.setItem('wallet', JSON.stringify({
+          "address": wallet.address,
+          "seed": wallet.seed,
+          "private_key": wallet.private_key,
+          "public_key": wallet.public_key
+        }));
+        setWallet(wallet);
+        setClient(client);
+      } else {
+        const client = await connectClient();
+        setClient(client);
+        const wallet = JSON.parse(localStorage.getItem('wallet'));
+        setWallet(wallet);
+      }
+    })()
+  }, [setClient, setWallet])
 
   return (
     <BrowserRouter>

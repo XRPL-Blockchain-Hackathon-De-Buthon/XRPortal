@@ -1,6 +1,4 @@
-----------------------------------------------------
--- Users 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `Users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_name` VARCHAR(255) NOT NULL,
@@ -12,9 +10,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- Posts 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `Posts` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `post_title` VARCHAR(255) NOT NULL,
@@ -31,13 +27,10 @@ CREATE TABLE IF NOT EXISTS `Posts` (
   FOREIGN KEY (`owner_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- Ads 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `Ads` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `ad_title` VARCHAR(255) NOT NULL,
-  -- ad_content는 S3 업로드 후 반환된 이미지 URL을 저장 (예시 URL 사용)
   `ad_content` TEXT NOT NULL,
   `start_date` DATE NOT NULL,
   `end_date` DATE NOT NULL,
@@ -49,9 +42,7 @@ CREATE TABLE IF NOT EXISTS `Ads` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- Comments 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `Comments` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `post_id` INT NOT NULL,
@@ -63,9 +54,7 @@ CREATE TABLE IF NOT EXISTS `Comments` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- Transactions 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `Transactions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `seller_id` INT NOT NULL,
@@ -82,9 +71,7 @@ CREATE TABLE IF NOT EXISTS `Transactions` (
   FOREIGN KEY (`post_id`) REFERENCES `Posts`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- AdClicks 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `AdClicks` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `ad_id` INT NOT NULL,
@@ -97,9 +84,7 @@ CREATE TABLE IF NOT EXISTS `AdClicks` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- PostLikes 테이블 생성
-----------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `PostLikes` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `post_id` INT NOT NULL,
@@ -110,9 +95,6 @@ CREATE TABLE IF NOT EXISTS `PostLikes` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- CommentLikes 테이블 생성
-----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `CommentLikes` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `comment_id` INT NOT NULL,
@@ -123,9 +105,7 @@ CREATE TABLE IF NOT EXISTS `CommentLikes` (
   FOREIGN KEY (`user_id`) REFERENCES `Users`(`id`)
 ) ENGINE=InnoDB;
 
-----------------------------------------------------
--- 초기 데이터 삽입
-----------------------------------------------------
+
 
 -- Users: 3명의 사용자 등록
 INSERT INTO Users (user_name, user_email, user_pw, user_wallet_address, user_token_balance, createdAt, updatedAt)

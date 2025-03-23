@@ -2,14 +2,23 @@ import os
 import json
 import time
 import threading
+import logging
 
 from flask import Blueprint, jsonify, request
+from sqlalchemy.exc import ProgrammingError
+
+
+from app.models import db, Users, Posts, Transactions
+
 
 # 이미 구현된 XRPLManager를 import (xrpl 라이브러리는 별도로 import하지 않음)
 from utils.wallet import XRPLManager
 
 bp = Blueprint('main', __name__)
 manager = XRPLManager()  # XRPLManager 인스턴스 (Issuer 지갑 포함)
+
+logger = logging.getLogger(__name__)
+
 
 
 @bp.route('/')
@@ -489,39 +498,38 @@ def api_get_transactions_by_address():
         return jsonify({"error": str(e)}), 500
 
 
-def monitor_db_and_reward():
+def monitor_db_and_reward(app):
     """
-    - DB를 모니터링(예: 조회수 100회 이상 등 특정 조건 확인)
-    - 조건 충족 시, Issuer 지갑에서 해당 유저 지갑 주소로 보상 토큰 전송
-    - 실제 운영환경에서는 Celery, Cron, RQ 등으로 분리하는 것이 일반적
+    60초마다 Posts 테이블 전체 레코드를 조회하여
+    개수를 로그(WARNING 레벨)로 출력 (DB 연결 확인용).
     """
     while True:
-        try:
-            # 여기는 예시로 print만 수행 (DB 접근/조건 확인 가정)
-            print("[monitor_db_and_reward] DB 모니터링 중...")
+        with app.app_context():
+            try:
+                all_posts = Posts.query.all()
+                logger.warning(f"[monitor_db_and_reward] 현재 Posts 테이블에 {len(all_posts)}개 게시글이 있습니다.")
 
-            # 예: '조건 달성'한 유저 주소가 있다고 가정해보자
-            # pseudo_address = "rEXAMPLEADDRESS123"
-            # manager.send_token(
-            #     wallet=manager.issuer_wallet,
-            #     destination_address=pseudo_address,
-            #     token_symbol="dbt",
-            #     issuer_address=manager.issuer_wallet.address,
-            #     amount="1"
-            # )
-            # print(f"[monitor_db_and_reward] {pseudo_address}에게 보상 토큰 1개 전송")
+            except ProgrammingError as pe:
+                # 테이블이 없거나, SQL 구문 문제가 발생한 경우
+                logger.warning(f"[monitor_db_and_reward] DB 조회 에러 (ProgrammingError): {pe}", exc_info=True)
+                logger.warning("[monitor_db_and_reward] 5초 후 재시도합니다...")
+                time.sleep(5)  # 테이블 생성 등 대기 후 다시 시도
+                continue       # while 루프 시작으로 돌아가기
 
-        except Exception as e:
-            print(f"[monitor_db_and_reward] 에러 발생: {e}")
+            except Exception as e:
+                # 그 외 에러 발생 시 에러 로깅
+                logger.warning(f"[monitor_db_and_reward] DB 조회 에러: {e}", exc_info=True)
 
-        # 60초마다 한 번씩 확인 (원하는 주기로 조정)
         time.sleep(60)
-
 
 def register_routes(app):
     # Blueprint 등록
     app.register_blueprint(bp)
     
-    # 앱 시작 시 DB 모니터링 스레드 기동 (데모용)
-    monitor_thread = threading.Thread(target=monitor_db_and_reward, daemon=True)
+    # 백그라운드 스레드로 DB 모니터링
+    monitor_thread = threading.Thread(
+        target=monitor_db_and_reward,
+        args=(app,),
+        daemon=True
+    )
     monitor_thread.start()

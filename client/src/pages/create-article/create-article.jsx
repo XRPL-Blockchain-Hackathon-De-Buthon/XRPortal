@@ -11,16 +11,20 @@ import {
 } from "./create-article.style";
 import MarkdownPreview from "../../components/markdown-preview/markdown-preview";
 import useUserStore from "../../store/auth";
-import { $api } from '../../utils/axios';
-import { useNavigate } from 'react-router-dom';
+import { $api } from "../../utils/axios";
+import { useNavigate } from "react-router-dom";
+import useWalletStore from "../../store/wallet";
+import { mintNFT } from "../../utils/wallet";
+import { Wallet } from 'xrpl';
 
 const CreateArticlePage = () => {
   // WRITE, MINTING
   const [step, setStep] = useState("WRITE");
-  const [title, setTitle] = useState("")
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [gasFee, setGasFee] = useState(0);
+  const [gasFee, setGasFee] = useState(0.01);
   const { user } = useUserStore();
+  const { wallet, client } = useWalletStore();
   const navigate = useNavigate();
 
   const onSubmitWrite = () => {
@@ -34,12 +38,24 @@ const CreateArticlePage = () => {
 
   const onSubmitMinting = async () => {
     if (!content || !user) return;
+    console.log("Minting...");
 
     try {
+      const newWallet = await Wallet.fromSeed(wallet.seed);
+      const mintResponse = await mintNFT(
+        client,
+        newWallet,
+        1,
+        title,
+        content,
+        "",
+        []
+      );
+
       const response = await $api.post("/posts/create", {
         post_title: title,
         post_content: content,
-        // gas_fee: gasFee,
+        gas_fee: gasFee,
         writer_id: user.id,
       });
 

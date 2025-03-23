@@ -406,39 +406,39 @@ class XRPLManager:
 
         return formatted_offers
 
-    def get_assets_by_address(self, address: str) -> dict:
-        result = {}
+    # def get_assets_by_address(self, address: str) -> dict:
+    #     result = {}
 
-        # XRP 잔액 확인
-        try:
-            acct_info = AccountInfo(
-                account=address,
-                ledger_index="validated"
-            )
-            response = self.client.request(acct_info)
-            xrp_balance_drops = response.result["account_data"]["Balance"]
-            result["XRP"] = int(xrp_balance_drops) / 1_000_000  # drops → XRP
-        except Exception as e:
-            result["XRP"] = f"오류: {e}"
+    #     # XRP 잔액 확인
+    #     try:
+    #         acct_info = AccountInfo(
+    #             account=address,
+    #             ledger_index="validated"
+    #         )
+    #         response = self.client.request(acct_info)
+    #         xrp_balance_drops = response.result["account_data"]["Balance"]
+    #         result["XRP"] = int(xrp_balance_drops) / 1_000_000  # drops → XRP
+    #     except Exception as e:
+    #         result["XRP"] = f"오류: {e}"
 
-        # TrustLine 기반 자산 확인
-        try:
-            lines_req = AccountLines(account=address)
-            lines_res = self.client.request(lines_req)
-            trust_lines = lines_res.result.get("lines", [])
-            issued_assets = []
-            for line in trust_lines:
-                issued_assets.append({
-                    "currency": line["currency"],
-                    "issuer": line["account"],
-                    "balance": line["balance"],
-                    "limit": line["limit"]
-                })
-            result["issued_tokens"] = issued_assets
-        except Exception as e:
-            result["issued_tokens"] = f"오류: {e}"
+    #     # TrustLine 기반 자산 확인
+    #     try:
+    #         lines_req = AccountLines(account=address)
+    #         lines_res = self.client.request(lines_req)
+    #         trust_lines = lines_res.result.get("lines", [])
+    #         issued_assets = []
+    #         for line in trust_lines:
+    #             issued_assets.append({
+    #                 "currency": line["currency"],
+    #                 "issuer": line["account"],
+    #                 "balance": line["balance"],
+    #                 "limit": line["limit"]
+    #             })
+    #         result["issued_tokens"] = issued_assets
+    #     except Exception as e:
+    #         result["issued_tokens"] = f"오류: {e}"
 
-        return result
+    #     return result
 
     def print_section(self, title: str):
         print("\n" + "=" * len(title))
